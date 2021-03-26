@@ -1,4 +1,5 @@
-/*** CREATE INFOTABLES ***/
+
+/*** CREATE INFOTABLE ***/
 
 // Name:STRING (name of DATASHAPE with fields field1 and field2)
 
