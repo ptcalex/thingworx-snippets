@@ -1,13 +1,13 @@
-
-/*** CREATE DATE INTERVAL ***/
+/*** Create DATETIME interval ***/
 
 // Name:STRING (name of DataShape with fields: StartDate, EndDate)
-// Interval:STRING (format: <number><time unit>, see below)
+let Name = "...";
+
+// Interval:STRING (format: <number><time unit character ['h', 'd', 'w', 'm', 'y']>)
+let Interval = "4h"; // 4 hours
 
 let result = DataShapes[Name].CreateValues();
-let now = new Date();
-let fromDate = new Date();
-let toDate = new Date();
+let fromDate = new Date(), toDate = new Date(), now = new Date();
 let n = Interval.slice(0, -1); // get number before the last character
 switch (Interval.slice(-1)) { // get last character
     case "h":  fromDate = new Date(now.setTime(now.getTime() - n*3600*1000)); break; 
