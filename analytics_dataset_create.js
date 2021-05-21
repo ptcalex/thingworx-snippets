@@ -31,5 +31,5 @@ let jobid = datathing.CreateDataset({
 });    
 
 // optionally save the job ID into a property for later reuse
-me.DatasetJobID = jobid; // you must previously create the property
+me.DatasetJobID = jobid; // you must have previously created this property
 
