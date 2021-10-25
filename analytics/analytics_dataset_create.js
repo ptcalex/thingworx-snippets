@@ -1,6 +1,4 @@
-/***
-  Create a ThingWorx Analytics dataset
-
+/*
 TO  create a ThingWorx Analytics dataset
 I   get a dataset reference to a CSV file located in a repository (9.x)
     infer dataset metadata using the dataset reference, and save the metadata to a file in the repository (9.x)
@@ -10,8 +8,7 @@ I   get a dataset reference to a CSV file located in a repository (9.x)
 PARAMETERS: DatasetName (mydataset), DataSetPath (/data.csv), MetadataPath (/metadata.json)
 PROPERTIES: me.DatasetRepository (a FileRepository), me.DataThing (AnalyticsServer_DataThing), me.DatasetJobID
 RETURN:     Job ID
-
-***/
+*/
 
 // let datasetref = getDatasetReference(DatasetPath); // 9.x
 // let metadata = inferMetadataFromDatasetRef(datasetref); // 9.x
