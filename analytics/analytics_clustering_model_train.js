@@ -1,19 +1,35 @@
-/*** Create a ThingWorx Analytics clustering model ***/
+/*
 
-let DatasetJobID = "..."; // the ID of a previously created dataset
+TO train a ThingWorx Analytics clustering model
+I  get a dataset reference to a dataset represented by a job ID
+   create a clustering model job
 
-let datasetRef = DataShapes.AnalyticsDatasetRef.CreateValues();
-datasetRef.AddRow({ datasetUri: "dataset:/" + DatasetJobID, format: "parquet" });
+SERVICE PARAMETERS:
+  DatasetJobID: the jobid of a previously created dataset
 
-// ClusteringThing: this THING name can be different in your environment
-let jobid = Things["AnalyticsServer_ClusteringThing"].CreateJob({ 
-	jobName: "Cluster Job " + Math.floor(100 + 900 * Math.random()),
-	clusterCount: 5,
-	description: "Asset clustering",
-	datasetRef: datasetRef,
-	tags: undefined
-});
+THING PROPERTIES:
+  me.ClusteringJobID: where this function saves the job ID just created
 
-// optionally save the job ID into a property for later reuse
-me.ClusterJobID = jobid; // you must have previously created this property
+*/
 
+let datasetRef = getDatasetReference(DatasetJobID);
+let jobid = createClusteringModelJobFromDatasetReference(datasetRef);
+let result = me.ClusteringJobID = jobid;
+
+/*** IMPLEMENTATION DETAILS ***/
+
+function getDatasetReference(jobID) {
+  let datasetRef = DataShapes.AnalyticsDatasetRef.CreateValues();
+  datasetRef.AddRow({ datasetUri: "dataset:/" + jobID, format: "parquet" });
+  return datasetRef;  
+}
+
+function createClusteringModelJobFromDatasetReference(datasetRef) {
+  return Things[me.ClusteringThing].CreateJob({ 
+  jobName: "Cluster Job " + Math.floor(100 + 900 * Math.random()),
+  clusterCount: 3,
+  description: "Clustering Model",
+  datasetRef: datasetRef,
+  tags: undefined
+  });
+}
