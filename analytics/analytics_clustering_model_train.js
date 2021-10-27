@@ -8,6 +8,7 @@ SERVICE PARAMETERS:
   DatasetJobID: the jobid of a previously created dataset
 
 THING PROPERTIES:
+  me.ClusteringThing: the analytics server entity acting as a proxy to the Clustering microservice
   me.ClusteringJobID: where this function saves the job ID just created
 
 */
