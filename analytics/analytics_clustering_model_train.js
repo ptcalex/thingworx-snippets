@@ -1,21 +1,19 @@
 /*
-
-TO train a ThingWorx Analytics clustering model
-I  get a dataset reference to a dataset represented by a job ID
-   create a clustering model job
-
-SERVICE PARAMETERS:
-  DatasetJobID: the jobid of a previously created dataset
-
-THING PROPERTIES:
-  me.ClusteringThing: the analytics server entity acting as a proxy to the Clustering microservice
-  me.ClusteringJobID: where this function saves the job ID just created
-
+    TO  Train a ThingWorx Analytics clustering model
+    I   Get a dataset reference to a dataset represented by a job ID
+        Create a clustering model job
+    PARAMETERS:
+        DatasetJobID: the jobid of a previously created dataset
+    RESULT:
+        The Job ID of the clustering model being created
 */
+
+const ClusteringThing = Things["AnalyticsServer_ClusteringThing"];
 
 let datasetRef = getDatasetReference(DatasetJobID);
 let jobid = createClusteringModelJobFromDatasetReference(datasetRef);
-let result = me.ClusteringJobID = jobid;
+let result = jobid;
+
 
 /*** IMPLEMENTATION DETAILS ***/
 
@@ -26,7 +24,7 @@ function getDatasetReference(jobID) {
 }
 
 function createClusteringModelJobFromDatasetReference(datasetRef) {
-  return Things[me.ClusteringThing].CreateJob({ 
+  return ClusteringThing.CreateJob({ 
   jobName: "Cluster Job " + Math.floor(100 + 900 * Math.random()),
   clusterCount: 3,
   description: "Clustering Model",
@@ -34,3 +32,4 @@ function createClusteringModelJobFromDatasetReference(datasetRef) {
   tags: undefined
   });
 }
+
