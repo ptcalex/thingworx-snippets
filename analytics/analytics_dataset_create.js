@@ -1,52 +1,54 @@
 /*
+    TO  Create a ThingWorx Analytics dataset
+    I   Get a dataset reference to a CSV file located in a repository (9.x)
+        Infer dataset metadata from the dataset reference, and it to a file in the repository (9.x)
+        Get tags for the dataset
+        Create the dataset tagged by the tags
 
-TO  create a ThingWorx Analytics dataset
-I   get a dataset reference to a CSV file located in a repository (9.x)
-    infer dataset metadata using the dataset reference, and save the metadata to a file in the repository (9.x)
-    get tags for the dataset
-    create a dataset tagged by the tags 
-
-PARAMETERS: DatasetName (mydataset), DataSetPath (/data.csv), MetadataPath (/metadata.json)
-PROPERTIES: me.DatasetRepository (a FileRepository), me.DataThing (AnalyticsServer_DataThing), me.DatasetJobID
-RETURN:     Job ID
-
+    PARAMETERS: DatasetName (mydataset), DataSetPath (/data.csv), MetadataPath (/metadata.json)
+    RETURN:     Job ID
 */
+
+const DatasetRepository = "Dataset"; // name of a ThingWorx File Repository entity
+const DataThing = Things["AnalyticsServer_DataThing"];
 
 // let datasetref = getDatasetReference(DatasetPath); // 9.x
 // let metadata = inferMetadataFromDatasetRef(datasetref); // 9.x
 // saveMetadata(metadata); // 9.x
 let tags = getDatasetTags(DatasetName);
 let jobid = createDatasetTaggedBy(tags);
-let result = me.DatasetJobID = jobid;
+let result = jobid;
+
 
 // ---------- IMPLEMENTATION DETAILS ---------- //
 
 function getDatasetReference() {
   let datasetRef = DataShapes.AnalyticsDatasetRef.CreateValues();
-  datasetRef.AddRow({ datasetUri: encodeURI("thingworx://" + me.DatasetRepository + DatasetPath), format: "csv" });
-  return datasetRef;    
+  datasetRef.AddRow({ datasetUri: encodeURI("thingworx://" + DatasetRepository + DatasetPath), format: "csv" });
+  return datasetRef;
 }
 
 function inferMetadataFromDatasetRef(datasetRef) {
-  return me.DataThing.DetectMetadataJSON({ datasetRef: datasetRef });
+  return DataThing.DetectMetadataJSON({ datasetRef: datasetRef });
 }
 
 function saveMetadata(metadata) {
-  Things[me.DatasetRepository].SaveText({ path: MetadataPath, content: JSON.parse(metadata) });
+  Things[DatasetRepository].SaveText({ path: MetadataPath, content: JSON.parse(metadata) });
 }
 
 function getDatasetTags() {
   let tags = DataShapes.GenericStringList.CreateValues();
   tags.AddRow({ item: "builderdataset" });
-  tags.AddRow({ item: "builderdatasetname:" + DatasetName });    
+  tags.AddRow({ item: "builderdatasetname:" + DatasetName });
   return tags;
 }
 
 function createDatasetTaggedBy(tags) {
-  return Things[me.DataThing].CreateDataset({
-    csvURI: encodeURI("thingworx://" + me.DatasetRepository + DatasetPath),
+  return DataThing.CreateDataset({
+    csvURI: encodeURI("thingworx://" + DatasetRepository + DatasetPath),
     csvHasHeaders: true,
-    metadataFileURI: encodeURI("thingworx://" + me.DatasetRepository + MetadataPath),
+    metadataFileURI: encodeURI("thingworx://" + DatasetRepository + MetadataPath),
     tags: tags
   });
 }
+
