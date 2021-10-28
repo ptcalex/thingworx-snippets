@@ -1,38 +1,81 @@
-/*** Score a ThingWorx Analytics clustering model ***/
+/*
+    TO  Score a ThingWorx Analytics clustering model and persist the result to CSV
+    I   Get a dataset reference to a scoring dataset represented by a job ID
+        Determine which fields of the dataset shall be included in the scoring result
+        Score the model
+    SERVICE PARAMETERS:
+      DatasetJobID: the jobid of a previously created dataset
+      ClusteringJobID: the jobid of a previously created clustering model
+    RESULT:
 
-let DatasetJobID = "..."; // the ID of a previously created dataset containing items to score
-let ClusteringJobID = "..."; // the ID of a previously created clustering model
+*/
 
-let datasetRef = DataShapes.AnalyticsDatasetRef.CreateValues();
-datasetRef.AddRow({ datasetUri: "dataset:/" + DatasetJobID, format: "parquet" });
+try {
+  let modelOutput = score();
+  // let scoringResult = transformModelOutput8(modelOutput);
+  let scoringResult = transformModelOutput9(modelOutput);
+  exportScoreToCSV(scoringResult);
+}
+catch (error) {
+  logger.error("ScoreClusteringModel: " + error);
+}
 
-// which fields of the input dataset shall be included in the result
-let identifiers = DataShapes.GenericStringList.CreateValues();
-identifiers.AddRow({ item: "AssetID" });
-identifiers.AddRow({ item: "ProductFamily" });
 
-let score = Things["AnalyticsServer_PredictionThing"].RealtimeScore({
-	modelUri: "results:/clusters/" + ClusteringJobID,
-	datasetRef: datasetRef,
-  identifierFields: identifiers
-});
 
-// create an INFOTABLE dynamically, with columns defined on-the-fly
-let result = { dataShape: { fieldDefinitions: {} }, rows: [] };
-result.dataShape.fieldDefinitions["_1"] = { name: "Asset", baseType: "STRING" };
-result.dataShape.fieldDefinitions["_2"] = { name: "ProductFamily", baseType: "INTEGER" };
-result.dataShape.fieldDefinitions["_3"] = { name: "Cluster", baseType: "STRING" };
-score.rows.toArray().forEach(row => {
-  // the order of row fields depend on the input DATASHAPE   
-  let asset = row.identifier_1, pf = row.identifier_2, cl = row.Clustering_mo;
-  result.rows.push({ Asset: asset, ProductFamily: pf, Cluster: String.fromCharCode(65 + Number(cl)) });
-});
+/* IMPLEMENTATION DETAILS */
 
-// export result to CSV
-Resources["CSVParserFunctions"].WriteCSVFile({
-	fileRepository: "SystemRepository",
-	path: "/clusters.csv",
-	data: result,
-	withHeader: true
-});
+function score() {
+  const PredictionThing = Things["AnalyticsServer_PredictionThing"];
+  let score = PredictionThing.RealtimeScore({
+    modelUri: "results:/clusters/" + ClusteringJobID,
+    datasetRef: getDatasetReference(DatasetJobID),
+    identifierFields: getIdentifiersFromArray(["identifier"])
+  });
+}
+
+function transformModelOutput8(modelOutput) {
+    let result = { dataShape: { fieldDefinitions: {} }, rows: [] }; 
+    result.dataShape.fieldDefinitions["_1"] = { name: "Identifier", baseType: "STRING" };
+    result.dataShape.fieldDefinitions["_2"] = { name: "Cluster", baseType: "STRING" };
+    modelOutput.rows.toArray().forEach(row => { 
+        let identifier = row.identifiers.rows[0].item;
+        let cluster = row.modelOutputs.Find({ fieldName: "Clustering_mo" }).fieldValue;    
+        result.rows.push({ Identifier: identifier, Cluster: String.fromCharCode(65 + Number(cluster)) });
+    });
+    return result;
+}
+
+function transformModelOutput9(modelOutput) {
+    let result = { dataShape: { fieldDefinitions: {} }, rows: [] }; 
+    result.dataShape.fieldDefinitions["_1"] = { name: "Identifier", baseType: "STRING" };
+    result.dataShape.fieldDefinitions["_2"] = { name: "Cluster", baseType: "STRING" };
+    modelOutput.rows.toArray().forEach(row => { 
+        let identifier = row.identifier_1;
+        let cluster = row.Clustering_mo;    
+        result.rows.push({ Identifier: identifier, Cluster: String.fromCharCode(65 + Number(cluster)) });
+    });
+    return result;
+}
+
+function exportScoreToCSV(scoringResult) {
+  const Repository = "Dataset"; // FileRepository entity name
+  Resources["CSVParserFunctions"].WriteCSVFile({
+    fileRepository: Repository,
+    path: "/clusters.csv",
+    data: scoringResult,
+    withHeader: true
+  });
+}
+
+function getDatasetReference(jobID) {
+  let datasetRef = DataShapes.AnalyticsDatasetRef.CreateValues();
+  datasetRef.AddRow({ datasetUri: "dataset:/" + jobID, format: "parquet" });
+  return datasetRef;  
+}
+
+function getIdentifiersFromArray(fieldArray) {
+  let fields = DataShapes.GenericStringList.CreateValues();
+  fieldArray.forEach(item => fields.AddRow({ item: item }));
+  return fields;    
+}
 
