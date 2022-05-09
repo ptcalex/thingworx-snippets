@@ -3,7 +3,7 @@
 let stream = ""; // name of Stream entity
 
 let values = Things[stream].CreateValues();
-values.AddRow({ /* all fields of the Stream's Data Shape here */ });
+values.AddRow({ /* fields of the Stream's Data Shape here */ });
 
 Things[stream].AddStreamEntry({
     tags: [], // array of tags where each tag is a string of the kind "Vocabulary:Tag"
